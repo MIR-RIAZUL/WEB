@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost & Found Hub</title>
+    <link rel="stylesheet" href="lost_and_found.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand-mark">&#x1f50d;</span>
+            <div>
+                <h1>Lost & Found Hub</h1>
+                <p>Reconnect lost items with their owners.</p>
+            </div>
+        </div>
+        <nav>
+            <a href="#report">Report</a>
+            <a href="#board">Board</a>
+            <a href="#tips">Tips</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div>
+            <h2>Find lost items or report something found in your community.</h2>
+            <p>Share an item, browse recent posts, and help bring lost things back home.</p>
+        </div>
+    </section>
+
+    <main>
+        <section id="report" class="grid-section">
+            <article class="card">
+                <h2>Report a Lost Item</h2>
+                <form id="lost-form">
+                    <label>Item name<input type="text" id="lost-name" placeholder="e.g. backpack" required /></label>
+                    <label>Category<select id="lost-category">
+                        <option value="Personal">Personal</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Other">Other</option>
+                    </select></label>
+                    <label>Last seen location<input type="text" id="lost-location" placeholder="e.g. school corridor" required /></label>
+                    <label>Contact info<input type="text" id="lost-contact" placeholder="Email or phone" required /></label>
+                    <label>Description<textarea id="lost-description" rows="3" placeholder="Brief details"></textarea></label>
+                    <button type="submit" class="button button-primary">Submit Lost Item</button>
+                </form>
+            </article>
+
+            <article class="card card-secondary">
+                <h2>Report a Found Item</h2>
+                <form id="found-form">
+                    <label>Item name<input type="text" id="found-name" placeholder="e.g. wallet" required /></label>
+                    <label>Category<select id="found-category">
+                        <option value="Personal">Personal</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Other">Other</option>
+                    </select></label>
+                    <label>Found location<input type="text" id="found-location" placeholder="e.g. library" required /></label>
+                    <label>Contact info<input type="text" id="found-contact" placeholder="Email or phone" required /></label>
+                    <label>Description<textarea id="found-description" rows="3" placeholder="Brief details"></textarea></label>
+                    <button type="submit" class="button button-secondary">Submit Found Item</button>
+                </form>
+            </article>
+        </section>
+
+        <section id="board" class="board-section">
+            <div class="section-header">
+                <h2>Recent Listings</h2>
+                <p>Items are grouped by lost and found so owners and helpers can connect quickly.</p>
+            </div>
+            <div class="board-tabs">
+                <button class="tab-button active" data-view="lost">Lost Items</button>
+                <button class="tab-button" data-view="found">Found Items</button>
+            </div>
+            <div class="board-list" id="board-list"></div>
+        </section>
+
+        <section id="tips" class="info-section">
+            <h2>Helpful Tips</h2>
+            <ul>
+                <li>Describe the item clearly and include a recent photo if possible.</li>
+                <li>Use a reliable contact method to make it easy for others to reach you.</li>
+                <li>Check this board often for new sightings and updates.</li>
+                <li>Be kind and honest when matching owners with found items.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Lost & Found Hub. Built to help communities stay connected.</p>
+    </footer>
+
+    <script>
+        const lostItems = [
+            { name: 'Blue backpack', category: 'Accessories', location: 'Bus stop', contact: 'lost@example.com', description: 'Contains books and a water bottle.' }
+        ];
+
+        const foundItems = [
+            { name: 'Silver keychain', category: 'Accessories', location: 'Park bench', contact: 'found@example.com', description: 'One metal key and small tag.' }
+        ];
+
+        const boardList = document.getElementById('board-list');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        let activeView = 'lost';
+
+        function renderBoard() {
+            const items = activeView === 'lost' ? lostItems : foundItems;
+            boardList.innerHTML = items.length ? items.map(item => `
+                <article class="item-card">
+                    <div class="item-header">
+                        <h3>${item.name}</h3>
+                        <span>${item.category}</span>
+                    </div>
+                    <p><strong>Location:</strong> ${item.location}</p>
+                    <p><strong>Contact:</strong> ${item.contact}</p>
+                    <p>${item.description}</p>
+                </article>
+            `).join('') : '<p class="empty-state">No items yet. Add a report above to populate the board.</p>';
+        }
+
+        function setActiveTab(view) {
+            activeView = view;
+            tabButtons.forEach(button => button.classList.toggle('active', button.dataset.view === view));
+            renderBoard();
+        }
+
+        document.getElementById('lost-form').addEventListener('submit', event => {
+            event.preventDefault();
+            lostItems.unshift({
+                name: document.getElementById('lost-name').value.trim(),
+                category: document.getElementById('lost-category').value,
+                location: document.getElementById('lost-location').value.trim(),
+                contact: document.getElementById('lost-contact').value.trim(),
+                description: document.getElementById('lost-description').value.trim() || 'No description provided.'
+            });
+            event.target.reset();
+            setActiveTab('lost');
+        });
+
+        document.getElementById('found-form').addEventListener('submit', event => {
+            event.preventDefault();
+            foundItems.unshift({
+                name: document.getElementById('found-name').value.trim(),
+                category: document.getElementById('found-category').value,
+                location: document.getElementById('found-location').value.trim(),
+                contact: document.getElementById('found-contact').value.trim(),
+                description: document.getElementById('found-description').value.trim() || 'No description provided.'
+            });
+            event.target.reset();
+            setActiveTab('found');
+        });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => setActiveTab(button.dataset.view));
+        });
+
+        renderBoard();
+    </script>
+</body>
+</html>
