@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ItemStatus {
+  LOST
+  FOUND
+  RESOLVED
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  role           String    @default("user")
+  reputation     Int       @default(0)
+  nid            String?
+  verified       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  items          Item[]
+  messagesSent   Message[] @relation("sentMessages")
+  messagesReceived Message[] @relation("receivedMessages")
+  notifications  Notification[]
+  reportsMade    Report[] @relation("ReporterReports")
+  reportsReceived Report[] @relation("TargetReports")
+  accounts       Account[]
+  sessions       Session[]
+}
+
+model Item {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  category    String
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  imageUrls   String[]    @default([])
+  imageLabels String[]    @default([])
+  status      ItemStatus  @default(LOST)
+  reward      Float?      @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  owner       User        @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  messages    Message[]
+  matchesA    Match[]     @relation("MatchA")
+  matchesB    Match[]     @relation("MatchB")
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  itemA     Item     @relation("MatchA", fields: [itemAId], references: [id])
+  itemAId   String
+  itemB     Item     @relation("MatchB", fields: [itemBId], references: [id])
+  itemBId   String
+  score     Int
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  from      User     @relation("sentMessages", fields: [fromId], references: [id])
+  fromId    String
+  to        User     @relation("receivedMessages", fields: [toId], references: [id])
+  toId      String
+  item      Item?    @relation(fields: [itemId], references: [id])
+  itemId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporter   User         @relation("ReporterReports", fields: [reporterId], references: [id])
+  reporterId String
+  targetUser User?        @relation("TargetReports", fields: [targetUserId], references: [id])
+  targetUserId String?
+  reason     String
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
