@@ -28,17 +28,6 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
     )
   }
 
-  if (!item) {
-    return (
-      <SiteShell>
-        <div className="rounded-[2rem] bg-white p-10 text-center shadow-xl ring-1 ring-slate-200">
-          <h1 className="text-2xl font-semibold text-slate-900">Item not found</h1>
-          <p className="mt-3 text-slate-600">The requested listing is not available.</p>
-        </div>
-      </SiteShell>
-    )
-  }
-
   const mapKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   const mapUrl = item.latitude && item.longitude && mapKey ? `https://www.google.com/maps/embed/v1/place?key=${mapKey}&q=${item.latitude},${item.longitude}` : null
 
@@ -85,7 +74,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {item.imageUrls.length ? item.imageUrls.map(url => (
+            {item.imageUrls.length ? item.imageUrls.map((url: string) => (
               <img key={url} src={url} alt={item.title} className="h-56 w-full rounded-3xl object-cover" />
             )) : (
               <div className="flex h-56 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">No images uploaded.</div>

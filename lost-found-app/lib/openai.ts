@@ -2,6 +2,21 @@
 import { prisma } from './prisma'
 import { sampleItems } from './demo-data'
 
+type SearchItem = {
+  id: string
+  title: string
+  description: string
+  category: string
+  location: string
+  imageUrls: string[]
+  imageLabels: string[]
+  owner?: {
+    id?: string
+    name?: string | null
+    email?: string
+  }
+}
+
 const client = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null
 const hasDb = Boolean(process.env.DATABASE_URL)
 
@@ -98,15 +113,15 @@ export async function findVisualMatches(imageLabels: string[], filters?: { categ
   const normalizedLabels = Array.from(new Set(imageLabels.map(label => label.toLowerCase())))
   const queryText = normalizedLabels.join(' ')
 
-  const items = !hasDb
-    ? sampleItems.filter(item => {
+  const items: SearchItem[] = !hasDb
+    ? sampleItems.filter((item: SearchItem) => {
         const metaText = `${item.title} ${item.description} ${item.category} ${item.imageLabels.join(' ')}`.toLowerCase()
-        const matchesLabels = normalizedLabels.some(label => metaText.includes(label))
+        const matchesLabels = normalizedLabels.some((label: string) => metaText.includes(label))
         const matchesLocation = filters?.location ? item.location.toLowerCase().includes(filters.location.toLowerCase()) : true
         const matchesCategory = filters?.category ? item.category === filters.category : true
         return matchesLabels && matchesLocation && matchesCategory
       })
-    : await prisma.item.findMany({
+    : (await prisma.item.findMany({
         where: {
           OR: [
             { title: { contains: queryText, mode: 'insensitive' as any } },
@@ -120,7 +135,7 @@ export async function findVisualMatches(imageLabels: string[], filters?: { categ
         include: { owner: true },
         orderBy: { createdAt: 'desc' },
         take: 50
-      })
+      })) as SearchItem[]
 
   const scored = await Promise.all(
     items.map(async item => {

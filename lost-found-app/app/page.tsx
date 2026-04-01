@@ -2,9 +2,23 @@ import { prisma } from '@/lib/prisma'
 import { SiteShell } from '@/components/site-shell'
 import { ItemCard } from '@/components/item-card'
 
+type HomeItem = {
+  id: string
+  title: string
+  category: string
+  location: string
+  status: string
+  reward: number | null
+  imageUrls: string[]
+  owner: {
+    name: string | null
+    email: string
+  }
+}
+
 export default async function HomePage() {
   const hasDb = Boolean(process.env.DATABASE_URL)
-  const recentItems = hasDb
+  const recentItems: HomeItem[] = hasDb
     ? await prisma.item.findMany({ orderBy: { createdAt: 'desc' }, take: 6, include: { owner: true } })
     : [
         {
